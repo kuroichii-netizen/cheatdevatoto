@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="id"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPTIMASI POLA GAME ONLINE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* Variabel Warna dan Font */
+        :root {
+            --bg-color: #0d0d0d;
+            --card-color: #1a1a1a;
+            --primary-blue: #00BFFF; /* Merah Lebih Berani */
+            --primary-blue-glow: rgba(0, 191, 255, 0.5);
+            --secondary-blue: #00FFFF; /* Merah Muda Neon */
+            --secondary-blue-glow: rgba(0, 255, 255, 0.4);
+            --secondary-text: #b0b0b0;
+            --font-title: 'Orbitron', sans-serif;
+            --font-body: 'Share Tech Mono', monospace;
+        }
+
+        /* Reset dan Dasar */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-color);
+            color: var(--secondary-text);
+            font-family: var(--font-body);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Efek Scanline di Latar Belakang */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0,
+                    transparent 2px,
+                    rgba(0, 191, 255, 0, 0.08) 3px,
+                    transparent 4px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0,
+                    transparent 2px,
+                    rgba(0, 191, 255, 0, 0.08) 3px,
+                    transparent 4px
+                );
+            z-index: 0;
+            animation: scanlineScroll 60s linear infinite;
+        }
+
+        @keyframes scanlineScroll {
+            to { background-position: 0 100%; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            background: var(--card-color);
+            border: 2px solid var(--primary-blue);
+            border-radius: 15px;
+            box-shadow: 0 0 15px var(--primary-blue-glow), inset 0 0 8px rgba(255, 20, 20, 0.2);
+            padding: 30px;
+            max-width: 650px;
+            width: 100%;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Halaman */
+        .halaman {
+            display: none;
+            flex-direction: column;
+            gap: 25px;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        .halaman.aktif {
+            display: flex;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Header dan Logo */
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .logo {
+            width: 250px;
+            height: auto;
+            animation: pulseGlow 5s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px var(--primary-blue-glow)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 15px var(--primary-blue)); }
+        }
+
+        .glitch-text {
+            font-size: 1.6em;
+            font-family: var(--font-title);
+            color: var(--primary-blue);
+            text-shadow: 0 0 10px var(--primary-blue-glow);
+            animation: textGlow 2s infinite alternate, textGlitch 4s linear infinite;
+        }
+
+        @keyframes textGlow {
+            to { text-shadow: 0 0 15px var(--primary-blue), 0 0 25px var(--secondary-blue); }
+        }
+
+        @keyframes textGlitch {
+            0% { clip-path: inset(10% 0 80% 0); }
+            25% { clip-path: inset(5% 0 85% 0); }
+            50% { clip-path: inset(70% 0 10% 0); }
+            75% { clip-path: inset(45% 0 45% 0); }
+            100% { clip-path: inset(10% 0 80% 0); }
+        }
+
+        /* Judul Halaman */
+        h1 {
+            color: var(--secondary-blue);
+            margin-bottom: 10px;
+            font-size: 2em;
+            font-family: var(--font-title);
+            font-weight: 700;
+            text-shadow: 0 0 10px var(--secondary-blue-glow);
+        }
+
+        h2 {
+            color: var(--primary-blue);
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        /* Input dan Tombol */
+        .input-group {
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-blue);
+            text-transform: uppercase;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--primary-blue);
+            border-radius: 8px;
+            background-color: rgba(26, 26, 26, 0.8);
+            color: var(--primary-blue);
+            font-size: 1em;
+            font-family: var(--font-body);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4), 0 0 5px var(--primary-blue-glow);
+            transition: box-shadow 0.3s ease;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4), 0 0 15px var(--primary-blue);
+        }
+
+        button, a.btn-secondary {
+            background-color: var(--primary-blue);
+            color: var(--bg-color);
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 700;
+            font-family: var(--font-title);
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 320px;
+            margin: 8px auto;
+            box-shadow: 0 0 10px var(--primary-blue-glow);
+            text-transform: uppercase;
+            text-decoration: none; /* Untuk link */
+            display: block;
+            text-align: center;
+        }
+        
+        button:hover, a.btn-secondary:hover {
+            background-color: var(--secondary-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px var(--secondary-blue-glow);
+        }
+
+        .btn-secondary {
+            background-color: #333;
+            color: var(--secondary-text);
+            box-shadow: none;
+            font-family: var(--font-body);
+            font-size: 1em;
+        }
+
+        .btn-secondary:hover {
+            background-color: #444;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            transform: none;
+        }
+
+        .pilihan-button {
+            padding: 12px 20px;
+            font-size: 0.9em;
+            background-color: #222;
+            color: var(--secondary-text);
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+        }
+
+        .pilihan-button:hover {
+            background-color: #444;
+            transform: translateY(-2px);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .pilihan-button.terpilih {
+            background-color: var(--primary-blue);
+            color: var(--bg-color);
+            box-shadow: 0 0 15px var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+        }
+
+        .info-text {
+            font-size: 1em;
+            color: var(--secondary-text);
+            margin-bottom: 10px;
+        }
+
+        #displayDeposit {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--secondary-blue);
+            text-shadow: 0 0 10px var(--secondary-blue-glow);
+        }
+
+        .result-box {
+            background-color: #0a0a0a;
+            padding: 25px;
+            border-radius: 10px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            font-size: 1.1em;
+            color: var(--secondary-text);
+            line-height: 1.6;
+            text-align: left;
+            white-space: pre-wrap;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 10px var(--primary-blue-glow);
+            border: 1px dashed var(--primary-blue);
+        }
+        
+        .result-box h3 {
+            color: var(--secondary-blue);
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+            text-shadow: 0 0 5px var(--secondary-blue-glow);
+        }
+
+        .result-box ol {
+            text-align: left;
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        .result-box li {
+            margin-bottom: 12px;
+        }
+        
+        .loading-text {
+            font-size: 1.3em;
+            text-shadow: 0 0 5px var(--secondary-blue);
+            animation: glitchText 1s infinite;
+        }
+        
+        @keyframes glitchText {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .activate-btn.activated {
+            animation: pulseblue 0.5s ease, shake 0.5s ease;
+        }
+
+        @keyframes pulseblue {
+            0% { box-shadow: 0 0 12px var(--primary-blue); transform: scale(1); }
+            50% { box-shadow: 0 0 25px #00BFFF; transform: scale(1.05); }
+            100% { box-shadow: 0 0 12px var(--primary-blue); transform: scale(1); }
+        }
+        
+        .game-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 kolom per baris */
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        @media (min-width: 500px) {
+            .game-list {
+                grid-template-columns: repeat(3, 1fr); /* 3 kolom per baris */
+            }
+        }
+
+        /* Kelas baru untuk Pilihan Opsi (2 kolom) */
+        .pilihan-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .game-button, .provider-button {
+            padding: 15px;
+            background-color: #222;
+            color: var(--primary-blue);
+            border: 1px solid var(--primary-blue);
+            border-radius: 8px;
+            box-shadow: 0 0 8px var(--primary-blue-glow);
+            transition: all 0.3s ease;
+            max-width: none;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .game-button:hover, .provider-button:hover {
+            background-color: var(--primary-blue);
+            color: var(--bg-color);
+            box-shadow: 0 0 15px var(--primary-blue);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        @media (min-width: 400px) {
+            .action-buttons {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .action-button {
+            background-color: #555;
+            color: white;
+            font-family: var(--font-body);
+            font-size: 0.9em;
+            padding: 12px;
+            max-width: none;
+        }
+        
+        .action-button:hover {
+            background-color: #777;
+        }
+        
+        #salinPolaBtn.success {
+            background-color: #28a745;
+            box-shadow: 0 0 10px #28a745;
+        }
+        
+        /* Responsif */
+        @media (max-width: 650px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            .glitch-text {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div class="glitch-text">OPTIMASI POLA GAME ONLINE</div>
+        </header>
+
+        <div id="halamanAwal" class="halaman aktif">
+            <h1>OPTIMASI POLA GAME ONLINE V1.7</h1>
+            <div class="input-group">
+                <label for="userID">MASUKKAN USER ID:</label>
+                <input type="text" id="userID" placeholder="Masukan ID Anda di sini">
+            </div>
+            <div class="input-group">
+                <label for="depositAmount">NOMINAL DEPOSIT (Rp):</label>
+                <input type="number" id="depositAmount" placeholder="Masukan Nominal Deposit Anda di sini" min="10000">
+            </div>
+            <button id="lanjutKeProvider" class="activate-btn">AKTIVASI DAN LANJUT</button>
+        </div>
+
+        <div id="halamanProvider" class="halaman">
+            <h1>PILIH PROVIDER</h1>
+            <button class="provider-button" data-provider="Pragmatic">PRAGMATIC PLAY</button>
+            <button class="provider-button" data-provider="PG">PG SOFT</button>
+            <button id="kembaliKeAwal" class="btn-secondary">KEMBALI</button>
+        </div>
+
+        <div id="halamanGame" class="halaman">
+            <h1 id="namaProviderDipilih"></h1>
+            <div id="daftarGame" class="game-list"></div>
+            <button id="kembaliKeProvider" class="btn-secondary">KEMBALI</button>
+        </div>
+
+        <div id="halamanOpsi" class="halaman">
+            <h1 id="namaGameDipilihOpsi"></h1>
+            <p class="info-text">KONFIGURASI STRATEGI KEMENANGAN</p>
+            
+            <div class="pilihan-group">
+                <h2>GAYA BERMAIN</h2>
+                <div id="pilihanGaya" class="pilihan-grid">
+                    <button class="pilihan-button" data-type="gaya" data-value="agresif">AGRESIF</button>
+                    <button class="pilihan-button" data-type="gaya" data-value="normal">NORMAL / STABIL</button>
+                </div>
+            </div>
+            
+            <div class="pilihan-group" id="tujuanPilihanContainer">
+                <h2>TARGET UTAMA</h2>
+                <div id="pilihanTujuan" class="pilihan-grid"></div>
+            </div>
+            
+            <button id="lanjutKeGenerasi" style="display:none;">AKTIVASI OPTIMASI POLA</button>
+            <button id="kembaliKeGameListOpsi" class="btn-secondary">KEMBALI</button>
+        </div>
+
+        <div id="halamanSimulasi" class="halaman">
+            <h1 id="namaGameDipilihSimulasi"></h1>
+            <p class="info-text">DEPOSIT AWAL: <span id="displayDeposit">Rp 0</span></p>
+            <div id="simulasiResult" class="result-box">
+                <p class="loading-text">SISTEM SIAP MENGANALISIS...</p>
+            </div>
+            <div id="actionButtons" style="display:none; flex-direction:column; gap:10px; margin-top:20px;">
+                <div class="action-buttons">
+                    <button id="salinPolaBtn" class="action-button">SALIN POLA</button>
+                    <button id="bagikanWaBtn" class="action-button">BAGIKAN KE WA</button>
+                </div>
+                <a href="https://devatoto.xyz/register?referral_code=smtoto" id="lanjutKeWebsite" class="btn-secondary">MULAI SESI PERMAINAN</a>
+            </div>
+            <button id="kembaliKeOpsi" class="btn-secondary">KEMBALI</button>
+        </div>
+
+    </div>
+
+    <script>
+        const halamanAwal = document.getElementById('halamanAwal');
+        const halamanProvider = document.getElementById('halamanProvider');
+        const halamanGame = document.getElementById('halamanGame');
+        const halamanOpsi = document.getElementById('halamanOpsi');
+        const halamanSimulasi = document.getElementById('halamanSimulasi');
+        const userIDInput = document.getElementById('userID');
+        const depositAmountInput = document.getElementById('depositAmount');
+        const displayDeposit = document.getElementById('displayDeposit');
+        const lanjutKeProviderBtn = document.getElementById('lanjutKeProvider');
+        const kembaliKeAwalBtn = document.getElementById('kembaliKeAwal');
+        const kembaliKeProviderBtn = document.getElementById('kembaliKeProvider');
+        const kembaliKeGameListOpsiBtn = document.getElementById('kembaliKeGameListOpsi');
+        const namaGameDipilihSimulasi = document.getElementById('namaGameDipilihSimulasi');
+        const kembaliKeOpsiBtn = document.getElementById('kembaliKeOpsi');
+        const lanjutKeWebsiteBtn = document.getElementById('lanjutKeWebsite');
+        const providerButtons = document.querySelectorAll('.provider-button');
+        const namaProviderDipilih = document.getElementById('namaProviderDipilih');
+        const daftarGameDiv = document.getElementById('daftarGame');
+        const namaGameDipilihOpsi = document.getElementById('namaGameDipilihOpsi');
+        const pilihanGayaDiv = document.getElementById('pilihanGaya');
+        const pilihanTujuanDiv = document.getElementById('pilihanTujuan');
+        const lanjutKeGenerasiBtn = document.getElementById('lanjutKeGenerasi');
+        const simulasiResult = document.getElementById('simulasiResult');
+
+        // Tombol baru
+        const salinPolaBtn = document.getElementById('salinPolaBtn');
+        const bagikanWaBtn = document.getElementById('bagikanWaBtn');
+        const actionButtonsDiv = document.getElementById('actionButtons');
+
+        let currentDeposit = 0;
+        let selectedProvider = '';
+        let selectedGameId = '';
+        let userID = '';
+        let selectedGameData = null;
+        let selectedGaya = '';
+        let selectedTujuan = '';
+
+        const gamesData = {
+            "Pragmatic": [
+                { id: "sweet_bonanza_ss", name: "Sweet Bonanza Super Scatter", provider: "Pragmatic", hasBuySpin: true },
+                { id: "gates_of_olympus_ss", name: "Gates of Olympus Super Scatter", provider: "Pragmatic", hasBuySpin: true },
+                { id: "starlight_princess_1000", name: "Starlight Princess 1000", provider: "Pragmatic", hasBuySpin: true },
+                { id: "gatot_kaca_1000", name: "Gatot Kaca 1000", provider: "Pragmatic", hasBuySpin: true },
+                { id: "wisdom_of_athena_1000", name: "Wisdom of Athena 1000", provider: "Pragmatic", hasBuySpin: true },
+                { id: "mahjong_wins_3bs", name: "Mahjong Wins 3 Black Scatter", provider: "Pragmatic", hasBuySpin: false }
+            ],
+            "PG": [
+                { id: "mahjong_ways", name: "Mahjong Ways", provider: "PG", hasBuySpin: false },
+                { id: "mahjong_ways_2", name: "Mahjong Ways 2", provider: "PG", hasBuySpin: false },
+                { id: "wild_bandito", name: "Wild Bandito", provider: "PG", hasBuySpin: true },
+                { id: "wild_bounty_showdown", name: "Wild Bounty Showdown", provider: "PG", hasBuySpin: true },
+                { id: "lucky_neko", name: "Lucky Neko", provider: "PG", hasBuySpin: true },
+                { id: "jurassic_kingdom", name: "Jurassic Kingdom", provider: "PG", hasBuySpin: true }
+            ]
+        };
+
+        // Fungsi utama generator pola
+        function generateAndDisplayPattern() {
+            // Logika untuk bet berdasarkan deposit
+            function getBetOptions(deposit) {
+                if (deposit < 50000) return [400, 500, 600];
+                if (deposit >= 50000 && deposit < 100000) return [400, 600, 800, 1000];
+                if (deposit >= 100000 && deposit < 200000) return [400, 600, 800, 1000, 1200, 1400];
+                if (deposit >= 200000 && deposit <= 1000000) return [1200, 1400, 1600, 1800, 2000];
+                if (deposit > 1000000) return [2000, 3000, 4000, 5000, 10000];
+                return [400]; // Default
+            }
+
+            // Logika jumlah spin dinamis berdasarkan gaya bermain
+            function getSpinCounts(gaya) {
+                if (gaya === 'agresif') return [20, 25, 30, 35, 40];
+                return [5, 10, 15, 20, 25]; // Normal
+            }
+            
+            const spinCounts = getSpinCounts(selectedGaya);
+            
+            const polaComponents = {
+                betOptions: getBetOptions(currentDeposit),
+                pragmatic: {
+                    spinTypes: [ "spin normal", "spin cepat", "spin turbo" ],
+                    autoSpinTypes: [ "auto normal", "auto cepat", "auto turbo" ],
+                },
+                pg: {
+                    spinTypes: ["spin normal", "spin turbo"],
+                    autoSpinTypes: ["auto normal", "auto turbo"],
+                }
+            };
+            
+            const loadingMessages = [
+                `ANALISIS DATA GAME ${selectedGameData.name}...`,
+                `MEMVERIFIKASI USER ID ${userID}...`,
+                `MEMPROSES NILAI DEPOSIT RP ${currentDeposit.toLocaleString('id-ID')}...`,
+                `MENGHUBUNGKAN KE SERVER GAME...`,
+                `MERANGKAI POLA OPTIMAL UNTUK ${selectedGaya.toUpperCase()}...`,
+                `MENCARI SIKLUS KEBERUNTUNGAN...`
+            ];
+            
+            let messageIndex = 0;
+            simulasiResult.innerHTML = `<p class="loading-text">${loadingMessages[messageIndex]}</p>`;
+            const loadingInterval = setInterval(() => {
+                messageIndex++;
+                if (messageIndex < loadingMessages.length) {
+                    simulasiResult.innerHTML = `<p class="loading-text">${loadingMessages[messageIndex]}</p>`;
+                } else {
+                    clearInterval(loadingInterval);
+                }
+            }, 500); // Durasi loading diperlambat
+
+            setTimeout(() => {
+                clearInterval(loadingInterval);
+                
+                let finalPolaHtml = `
+                    <h3>HASIL ANALISIS OPTIMASI POLA</h3>
+                    <p class="info-text">Ini pola yang terbaik untuk tipe **${selectedGaya.toUpperCase()}** dengan target **${selectedTujuan.toUpperCase().replace('_', ' ')}**.</p>
+                    <ol>
+                `;
+
+                // Logika pola tergantung provider
+                if (selectedProvider === 'Pragmatic') {
+                    const spinType1 = getRandomElement(polaComponents.pragmatic.spinTypes);
+                    const spinCount1 = getRandomElement(spinCounts);
+                    const betAmount1 = getRandomElement(polaComponents.betOptions);
+                    const autoSpinType1 = getRandomElement(polaComponents.pragmatic.autoSpinTypes);
+                    const autoSpinCount1 = getRandomElement(spinCounts);
+                    const spinType2 = getRandomElement(polaComponents.pragmatic.spinTypes);
+                    const spinCount2 = getRandomElement(spinCounts);
+                    const repeatCount = Math.floor(Math.random() * 2) + 2; // 2 atau 3
+                    
+                    finalPolaHtml += `<li>Langkah 1: Lakukan **${spinType1}** sebanyak **${spinCount1}x** dengan bet **Rp ${betAmount1.toLocaleString('id-ID')}** dan **DC ON**.</li>`;
+                    finalPolaHtml += `<li>Langkah 2: Lalu, lanjutkan dengan **${autoSpinType1}** sebanyak **${autoSpinCount1}x** dengan **DC OFF**.</li>`;
+                    finalPolaHtml += `<li>Langkah 3: Setelah itu, lakukan lagi **${spinType2}** sebanyak **${spinCount2}x** dengan **DC OFF**.</li>`;
+                    finalPolaHtml += `<li>Langkah 4: **Ulangi pola** dari langkah 1 sampai 3 sebanyak **${repeatCount}x** atau sampai mendapatkan **fitur bonus**.</li>`;
+
+                } else if (selectedProvider === 'PG') {
+                    const betAmountPG = getRandomElement(polaComponents.betOptions);
+                    const spinCountPG1 = getRandomElement(spinCounts);
+                    const spinCountPG2 = getRandomElement(spinCounts);
+                    const autoSpinCountPG = getRandomElement(spinCounts);
+                    const repeatCount = Math.floor(Math.random() * 2) + 2; // 2 atau 3
+
+                    finalPolaHtml += `<li>Langkah 1: Lakukan **spin normal** sebanyak **${spinCountPG1}x** dengan bet **Rp ${betAmountPG.toLocaleString('id-ID')}**.</li>`;
+                    finalPolaHtml += `<li>Langkah 2: Lalu, lanjutkan dengan **auto turbo** sebanyak **${autoSpinCountPG}x**.</li>`;
+                    finalPolaHtml += `<li>Langkah 3: Setelah itu, lakukan lagi **spin turbo** sebanyak **${spinCountPG2}x**.</li>`;
+                    finalPolaHtml += `<li>Langkah 4: **Ulangi pola** dari langkah 1 sampai 3 sebanyak **${repeatCount}x** atau sampai mendapatkan **fitur bonus**.</li>`;
+                }
+
+                finalPolaHtml += `</ol>`;
+
+                // Prediksi kemenangan berdasarkan gaya bermain
+                let multiplier = 5;
+                if (selectedGaya === 'agresif') {
+                    multiplier = Math.floor(Math.random() * (7 - 6 + 1)) + 6;
+                } else if (selectedGaya === 'normal') {
+                    multiplier = 5;
+                }
+                const winPrediction = Math.floor(currentDeposit * multiplier + Math.random() * (currentDeposit * 0.5));
+                finalPolaHtml += `<br><p><strong>POTENSIAL KEMENANGAN:</strong> <span style="color:#ff1414;">Rp ${winPrediction.toLocaleString('id-ID')}</span></p>`;
+                finalPolaHtml += `<p class="info-text"><em>Untuk hasil lebih maksimal gunakan pola dalam kurun waktu 15 menit saja.</em></p>`;
+                
+                simulasiResult.innerHTML = finalPolaHtml;
+                
+                // Menampilkan tombol salin dan bagikan setelah pola selesai
+                actionButtonsDiv.style.display = 'flex';
+                
+            }, loadingMessages.length * 500 + 500); // Durasi loading diperlambat
+
+        }
+
+        // --- FUNGSI BANTUAN & EVENT LISTENER ---
+        function getRandomElement(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function tampilkanHalaman(halamanYangDituju) {
+            const semuaHalaman = document.querySelectorAll('.halaman');
+            semuaHalaman.forEach(halaman => halaman.classList.remove('aktif'));
+            setTimeout(() => halamanYangDituju.classList.add('aktif'), 100);
+        }
+
+        lanjutKeProviderBtn.addEventListener('click', () => {
+            userID = userIDInput.value.trim();
+            currentDeposit = parseFloat(depositAmountInput.value);
+            if (userID === '') { alert('User ID tidak boleh kosong!'); return; }
+            if (isNaN(currentDeposit) || currentDeposit < 10000) { alert('Deposit minimal Rp 10.000!'); return; }
+            displayDeposit.textContent = `Rp ${currentDeposit.toLocaleString('id-ID')}`;
+            tampilkanHalaman(halamanProvider);
+        });
+
+        kembaliKeAwalBtn.addEventListener('click', () => tampilkanHalaman(halamanAwal));
+
+        providerButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                selectedProvider = event.target.dataset.provider;
+                namaProviderDipilih.textContent = `PILIH GAME ${selectedProvider}`;
+                renderGameList(selectedProvider);
+                tampilkanHalaman(halamanGame);
+            });
+        });
+
+        kembaliKeProviderBtn.addEventListener('click', () => tampilkanHalaman(halamanProvider));
+        
+        function renderGameList(provider) {
+            daftarGameDiv.innerHTML = '';
+            const games = gamesData[provider];
+            if (games && games.length > 0) {
+                games.forEach(game => {
+                    const gameButton = document.createElement('button');
+                    gameButton.classList.add('game-button');
+                    gameButton.textContent = game.name.toUpperCase();
+                    gameButton.dataset.gameId = game.id;
+                    gameButton.addEventListener('click', () => {
+                        selectedGameId = game.id;
+                        selectedGameData = game;
+                        namaGameDipilihOpsi.textContent = `KONFIGURASI ${game.name.toUpperCase()}`;
+                        renderTujuanOptions();
+                        tampilkanHalaman(halamanOpsi);
+                    });
+                    daftarGameDiv.appendChild(gameButton);
+                });
+            } else { daftarGameDiv.innerHTML = '<p>Tidak ada game yang tersedia untuk provider ini.</p>'; }
+        }
+        
+        function renderTujuanOptions() {
+            pilihanTujuanDiv.innerHTML = '';
+            let tujuanOptions = [];
+            
+            if (selectedGameData.provider === 'Pragmatic' && selectedGameData.hasBuySpin) {
+                tujuanOptions = [
+                    { value: "freespin", text: "CARI FREESPIN" },
+                    { value: "perkalian", text: "CARI PERKALIAN BESAR" }
+                ];
+            } else if (selectedGameData.provider === 'PG' && selectedGameData.hasBuySpin) {
+                tujuanOptions = [
+                    { value: "freespin", text: "CARI FREESPIN" },
+                    { value: "pecahan", text: "CARI PECAHAN SERING" }
+                ];
+            } else {
+                tujuanOptions = [
+                    { value: "freespin", text: "CARI FREESPIN" }
+                ];
+                document.getElementById('tujuanPilihanContainer').style.display = 'none';
+                selectedTujuan = 'freespin';
+            }
+
+            if (tujuanOptions.length > 1) {
+                 document.getElementById('tujuanPilihanContainer').style.display = 'block';
+                tujuanOptions.forEach(option => {
+                    const button = document.createElement('button');
+                    button.classList.add('pilihan-button');
+                    button.dataset.type = "tujuan";
+                    button.dataset.value = option.value;
+                    button.textContent = option.text;
+                    pilihanTujuanDiv.appendChild(button);
+                });
+            } else if (tujuanOptions.length === 1) {
+                const button = document.createElement('button');
+                button.classList.add('pilihan-button', 'terpilih');
+                button.dataset.type = "tujuan";
+                button.dataset.value = tujuanOptions[0].value;
+                button.textContent = tujuanOptions[0].text;
+                pilihanTujuanDiv.appendChild(button);
+                selectedTujuan = tujuanOptions[0].value;
+            }
+
+            attachPilihanListeners();
+        }
+
+        function attachPilihanListeners() {
+            const semuaPilihanButtons = document.querySelectorAll('.pilihan-button');
+            semuaPilihanButtons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const type = event.target.dataset.type;
+                    const value = event.target.dataset.value;
+                    document.querySelectorAll(`[data-type="${type}"]`).forEach(btn => btn.classList.remove('terpilih'));
+                    event.target.classList.add('terpilih');
+                    if (type === 'gaya') { selectedGaya = value; }
+                    else if (type === 'tujuan') { selectedTujuan = value; }
+                    
+                    checkCompletion();
+                });
+            });
+        }
+
+        function checkCompletion() {
+            const gayaTerpilih = document.querySelector('.pilihan-button[data-type="gaya"].terpilih');
+            
+            if (!document.getElementById('tujuanPilihanContainer').style.display || document.getElementById('tujuanPilihanContainer').style.display === 'none') {
+                if (gayaTerpilih) {
+                    lanjutKeGenerasiBtn.style.display = 'block';
+                } else {
+                    lanjutKeGenerasiBtn.style.display = 'none';
+                }
+            } else {
+                const tujuanTerpilih = document.querySelector('.pilihan-button[data-type="tujuan"].terpilih');
+                if (gayaTerpilih && tujuanTerpilih) {
+                    lanjutKeGenerasiBtn.style.display = 'block';
+                } else {
+                    lanjutKeGenerasiBtn.style.display = 'none';
+                }
+            }
+        }
+        
+        pilihanGayaDiv.addEventListener('click', (event) => {
+            const target = event.target.closest('.pilihan-button');
+            if (target) {
+                document.querySelectorAll('.pilihan-button[data-type="gaya"]').forEach(btn => btn.classList.remove('terpilih'));
+                target.classList.add('terpilih');
+                selectedGaya = target.dataset.value;
+                checkCompletion();
+            }
+        });
+        pilihanTujuanDiv.addEventListener('click', (event) => {
+            const target = event.target.closest('.pilihan-button');
+            if (target) {
+                document.querySelectorAll('.pilihan-button[data-type="tujuan"]').forEach(btn => btn.classList.remove('terpilih'));
+                target.classList.add('terpilih');
+                selectedTujuan = target.dataset.value;
+                checkCompletion();
+            }
+        });
+
+
+        kembaliKeGameListOpsiBtn.addEventListener('click', () => {
+            selectedGaya = ''; selectedTujuan = '';
+            document.querySelectorAll('.pilihan-button').forEach(btn => btn.classList.remove('terpilih'));
+            lanjutKeGenerasiBtn.style.display = 'none';
+            tampilkanHalaman(halamanGame);
+        });
+
+        lanjutKeGenerasiBtn.addEventListener('click', () => {
+            namaGameDipilihSimulasi.textContent = `ANALISIS ${selectedGameData.name.toUpperCase()}`;
+            displayDeposit.textContent = `Rp ${currentDeposit.toLocaleString('id-ID')}`;
+            simulasiResult.innerHTML = '<p class="loading-text">SISTEM SIAP MENGANALISIS...</p>';
+            actionButtonsDiv.style.display = 'none';
+            tampilkanHalaman(halamanSimulasi);
+            generateAndDisplayPattern();
+        });
+        
+        kembaliKeOpsiBtn.addEventListener('click', () => {
+            simulasiResult.innerHTML = '<p class="loading-text">SISTEM SIAP MENGANALISIS DATA UNTUK ANDA.</p>';
+            tampilkanHalaman(halamanOpsi);
+        });
+        
+        // Listener untuk tombol salin pola
+        salinPolaBtn.addEventListener('click', () => {
+            const polaText = simulasiResult.innerText;
+            navigator.clipboard.writeText(polaText).then(() => {
+                const originalText = salinPolaBtn.textContent;
+                salinPolaBtn.textContent = 'BERHASIL DISALIN!';
+                salinPolaBtn.classList.add('success');
+                setTimeout(() => {
+                    salinPolaBtn.textContent = originalText;
+                    salinPolaBtn.classList.remove('success');
+                }, 2000);
+            }).catch(err => {
+                console.error('Gagal menyalin: ', err);
+                alert('Gagal menyalin pola, silakan coba lagi atau salin manual.');
+            });
+        });
+
+        // Listener untuk tombol bagikan ke WA
+        bagikanWaBtn.addEventListener('click', () => {
+            const waMessage = `Gas bro pakai apk ini, bikin gampang wd nya ! Nih cobain https://ladangcuan.byethost8.com//`;
+            const encodedMessage = encodeURIComponent(waMessage);
+            const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+        });
+    </script>
+
+</body></html>
